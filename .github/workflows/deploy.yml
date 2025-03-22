@@ -21,22 +21,16 @@ jobs:
         run: |
           # Create .ssh directory
           mkdir -p ~/.ssh
-
+          
           # Write key to file and set proper permissions
           echo "$PRIVATE_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-
+          
           # Add host to known hosts
           ssh-keyscan -H ${HOST_NAME} >> ~/.ssh/known_hosts
-
-          # Debug: Show key information
-          ssh-keygen -lf ~/.ssh/deploy_key || echo "Invalid key format"
-
-          # Test connection with verbose output
-          ssh -v -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key ${USER_NAME}@${HOST_NAME} "echo 'Connection test'"
-
-          # If connection test succeeds, proceed with deployment
-          ssh -i ~/.ssh/deploy_key ${USER_NAME}@${HOST_NAME} <<EOF
+          
+          # Use -T flag to disable pseudo-terminal allocation
+          ssh -T -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key ${USER_NAME}@${HOST_NAME} <<EOF
             if [ ! -d "${PROJECT_PATH}/.git" ]; then
               mkdir -p \$(dirname ${PROJECT_PATH})
               git clone ${GIT_REPO} ${PROJECT_PATH}
